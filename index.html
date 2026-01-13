@@ -1,609 +1,342 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Banco de Dados da Ordem — Painel</title>
-<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cronos SMP — O Tempo Não Espera</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+
 <style>
-  :root{
-    --bg:#07101a;
-    --panel:#0f1720;
-    --muted:#bfcbdc;
-    --accent:#2e8bff;
-    --accent-2:#7a4eff;
-    --glass: rgba(255,255,255,0.03);
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%;margin:0;background:linear-gradient(180deg,#031023 0%,var(--bg) 40%);color:var(--muted);font-family:'Roboto Mono',monospace;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:1200px;margin:18px auto;padding:18px}
-  header{display:flex;align-items:center;gap:14px;margin-bottom:12px}
-  .brand{display:flex;gap:12px;align-items:center}
-  .sigil{width:54px;height:54px;border-radius:10px;background:linear-gradient(135deg,var(--accent-2),#3b1b6b);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(0,0,0,0.6)}
-  h1{font-family:'Inter',sans-serif;margin:0;font-size:20px;color:#eaf0ff}
-  .subtitle{font-size:13px;color:rgba(255,255,255,0.55)}
-  .status{margin-left:auto;font-size:13px;color:rgba(255,255,255,0.55)}
-  .layout{display:grid;grid-template-columns:360px 1fr;gap:18px;align-items:start}
-  .panel{background:var(--panel);border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 12px 40px rgba(2,6,23,0.6)}
-  label{display:block;font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:6px}
-  input[type=text], input[type=password], textarea, select{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted);font-family:inherit}
-  textarea{min-height:100px;resize:vertical}
-  .small{font-size:13px;color:rgba(255,255,255,0.6)}
-  .btn{background:var(--accent);border:none;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600;box-shadow:0 6px 18px rgba(46,139,255,0.08)}
-  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04)}
-  .catalog{margin-top:12px;max-height:62vh;overflow:auto;padding-right:6px;display:flex;flex-direction:column;gap:8px}
-  .npc-item{display:flex;gap:10px;align-items:center;padding:10px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);cursor:pointer;border:1px solid rgba(255,255,255,0.02)}
-  .npc-item:hover{transform:translateY(-3px);transition:all .15s}
-  .thumb{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#103b6a);display:flex;align-items:center;justify-content:center;color:white;font-weight:700}
-  .main-area{display:flex;flex-direction:column;gap:12px}
-  .searchbar{display:flex;gap:10px;align-items:center}
-  .searchbar input{flex:1;padding:12px;border-radius:10px}
-  .results{display:grid;grid-template-columns:1fr 360px;gap:14px}
-  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,0.03)}
-  .npc-view h2{margin:0;font-size:20px;color:#f3ecff}
-  .meta{color:var(--muted);font-size:13px;margin-top:6px}
-  .tags{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-  .tag{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.03);font-size:13px}
-  .editable{background:linear-gradient(90deg, rgba(122,78,255,0.03), transparent);border:1px dashed rgba(122,78,255,0.06)}
-  footer{margin-top:18px;color:rgba(255,255,255,0.12);font-size:13px;text-align:center}
-  .muted{color:rgba(255,255,255,0.6)}
-  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  /* login overlay */
-  .login-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(2,6,23,0.65), rgba(2,6,23,0.75));backdrop-filter:blur(4px);z-index:9999}
-  .login-box{width:520px;max-width:92%;background:linear-gradient(180deg, rgba(20,22,30,0.98), rgba(14,16,22,0.98));border:1px solid rgba(255,255,255,0.04);padding:22px;border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,0.8)}
-  .login-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
-  .lock{width:56px;height:56px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#113a6e);display:flex;align-items:center;justify-content:center;color:white}
-  .finger{width:140px;height:120px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.04);cursor:pointer;position:relative;overflow:hidden}
-  .icon{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.05)}
-  .ring{position:absolute;width:200px;height:200px;border-radius:50%;border:2px solid rgba(46,139,255,0.03);top:50%;left:50%;transform:translate(-50%,-50%);animation:slow-rotate 6s linear infinite}
-  @keyframes slow-rotate{from{transform:translate(-50%,-50%) rotate(0)}to{transform:translate(-50%,-50%) rotate(360deg)}}
-  .finger.pulse .icon{box-shadow:0 0 18px rgba(46,139,255,0.22);transform:scale(1.04);transition:transform .12s}
-  .scan{position:absolute;left:-40%;top:0;width:40%;height:100%;background:linear-gradient(90deg, transparent, rgba(46,139,255,0.06), transparent);transform:skewX(-12deg);animation:scan 1.6s infinite}
-  @keyframes scan{0%{left:-40%}50%{left:100%}100%{left:-40%}}
-  .hint{font-size:12px;color:rgba(255,255,255,0.6);margin-top:8px;text-align:center}
-  .hidden{display:none}
-  /* small device tweaks */
-  @media(max-width:980px){.layout{grid-template-columns:1fr} .results{grid-template-columns:1fr} .catalog{max-height:220px}}
-  input, textarea, select { pointer-events: auto; position: relative; z-index: 2; }
-  /* small polish for visible logout button */
-  #btnLogoutTop{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);padding:6px 10px;border-radius:8px;cursor:pointer}
-  #btnLogoutTop:hover{background:rgba(255,255,255,0.02)}
+*{margin:0;padding:0;box-sizing:border-box}
+
+@font-face{
+  font-family:'Minecraft';
+  src:url('https://cdn.jsdelivr.net/gh/South-Paw/typeface-minecraft@master/font/minecraft.woff2') format('woff2');
+}
+
+html,body{
+width:100%;
+background:#000;
+color:#fff;
+font-family:'Minecraft','Inter',sans-serif;
+overflow-x:hidden;
+}
+
+:root{
+--bg:#000;
+--bg-soft:#050505;
+--card:#0c0c0c;
+--line:#141414;
+--muted:#9a9a9a;
+--danger:#ff3b3b;
+}
+
+section{padding:180px 8vw}
+h2{font-size:3.8rem;font-weight:900;letter-spacing:-3px}
+p{font-family:'Inter',sans-serif;opacity:.85;line-height:1.9}
+
+/* ================= NAV ================= */
+nav{
+position:fixed;top:0;left:0;
+width:100%;height:90px;
+display:flex;justify-content:space-between;align-items:center;
+padding:0 6vw;
+background:rgba(0,0,0,.7);
+backdrop-filter:blur(14px);
+border-bottom:1px solid var(--line);
+z-index:1000;
+}
+nav ul{display:flex;gap:45px;list-style:none}
+nav a{color:#fff;text-decoration:none;font-size:.75rem;letter-spacing:4px;opacity:.6}
+nav a:hover{opacity:1}
+
+/* ================= HERO ================= */
+.hero{height:100vh;position:relative;overflow:hidden}
+.hero-gif{
+position:absolute;
+top:50%;left:50%;
+min-width:100%;min-height:100%;
+transform:translate(-50%,-50%);
+object-fit:cover;
+filter:brightness(.35);
+}
+.hero::after{
+content:"";position:absolute;inset:0;
+background:
+radial-gradient(circle at center,rgba(255,255,255,.08),transparent 60%),
+linear-gradient(to bottom,rgba(0,0,0,.2),#000 90%);
+}
+.hero-content{
+position:relative;z-index:2;
+height:100%;
+display:flex;flex-direction:column;
+justify-content:center;align-items:center;
+text-align:center;
+padding:40px;
+}
+.hero h1{font-size:clamp(4rem,9vw,8rem)}
+.hero p{margin-top:35px;max-width:900px;font-size:1.25rem}
+.hero strong{color:var(--danger)}
+.scroll{position:absolute;bottom:40px;font-size:.7rem;letter-spacing:4px;opacity:.6}
+
+/* ================= CHAMADA ================= */
+.cta{
+margin-top:60px;
+display:flex;gap:30px;flex-wrap:wrap;justify-content:center;
+}
+.cta a{
+padding:18px 40px;
+border:1px solid var(--line);
+text-decoration:none;
+color:#fff;
+font-size:.75rem;
+letter-spacing:4px;
+transition:.3s;
+}
+.cta a.primary{
+background:#fff;
+color:#000;
+font-weight:900;
+}
+.cta a:hover{transform:translateY(-4px)}
+
+/* ================= AO VIVO ================= */
+.live{background:var(--bg-soft)}
+.live-grid{
+margin-top:90px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
+gap:60px;
+}
+.live-card{
+background:var(--card);
+border:1px solid var(--line);
+transition:.4s;
+}
+.live-card:hover{transform:translateY(-8px)}
+.live-card iframe{width:100%;height:260px;border:none}
+.live-info{padding:30px}
+.live-tag{color:var(--danger);font-size:.7rem;letter-spacing:4px}
+
+/* ================= POR QUE JOGAR ================= */
+.why{background:#000}
+.why-grid{
+margin-top:90px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+gap:80px;
+}
+.reason{
+border-left:2px solid var(--line);
+padding-left:30px;
+}
+.reason h3{font-size:1.8rem;margin-bottom:20px}
+
+/* ================= IMERSÃO ================= */
+.immersion{background:var(--bg-soft)}
+.quote{
+font-size:2rem;
+max-width:1000px;
+font-weight:900;
+letter-spacing:-1px;
+}
+
+/* ================= LINHA DO TEMPO ================= */
+.timeline{background:#000}
+.timeline-grid{
+margin-top:90px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+gap:70px;
+}
+.event{
+background:var(--card);
+border:1px solid var(--line);
+padding:45px;
+}
+.event span{
+font-size:.7rem;
+letter-spacing:4px;
+color:var(--muted);
+}
+
+/* ================= CONVITE ================= */
+.join{
+background:radial-gradient(circle at center,rgba(255,255,255,.06),#000 70%);
+text-align:center;
+}
+.join h2{margin-bottom:40px}
+.join p{font-size:1.3rem;max-width:900px;margin:0 auto 60px}
+
+/* ================= FOOTER ================= */
+footer{
+border-top:1px solid var(--line);
+padding:120px 8vw;
+font-size:.75rem;
+opacity:.6;
+text-align:center;
+font-family:'Inter',sans-serif;
+}
+
+/* ================= REVEAL ================= */
+.reveal{opacity:0;transform:translateY(60px);transition:1s ease}
+.reveal.show{opacity:1;transform:none}
+.scroll{
+position:absolute;
+bottom:40px;
+display:flex;
+gap:6px;
+font-size:.7rem;
+letter-spacing:4px;
+opacity:.8;
+}
+
+.scroll span{
+animation:scrollPulse 2s infinite;
+opacity:0;
+}
+
+.scroll span:nth-child(1){animation-delay:0s}
+.scroll span:nth-child(2){animation-delay:.1s}
+.scroll span:nth-child(3){animation-delay:.2s}
+.scroll span:nth-child(4){animation-delay:.3s}
+.scroll span:nth-child(5){animation-delay:.4s}
+.scroll span:nth-child(6){animation-delay:.5s}
+.scroll span.arrow{animation-delay:.7s}
+
+@keyframes scrollPulse{
+0%{opacity:0;transform:translateY(0)}
+30%{opacity:1}
+60%{opacity:1}
+100%{opacity:0;transform:translateY(8px)}
+}
+
 </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <header>
-      <div class="brand">
-        <div class="sigil" aria-hidden>
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L15 8L21 9L17 13L18 19L12 16L6 19L7 13L3 9L9 8L12 2Z" stroke="white" stroke-opacity="0.9" stroke-width="0.9" stroke-linejoin="round"/></svg>
-        </div>
-        <div>
-          <h1>Banco de Dados da Ordem</h1>
-          <div class="subtitle">Painel de Arquivologia — agentes autorizados</div>
-        </div>
-      </div>
-      <div class="status" id="status">Não logado</div>
-      <!-- LOGOUT TOP (visível quando logado) -->
-      <button id="btnLogoutTop" class="hidden" title="Sair">Logout</button>
-    </header>
 
-    <div class="layout">
-      <!-- LEFT: login inputs (redundant enquanto overlay ativo) + catálogo -->
-      <aside>
-        <div class="panel login-panel" id="loginPanel">
-          <h3 style="margin:0">Acesso do Agente</h3>
-          <div class="field" style="margin-top:8px">
-            <label>Usuário</label>
-            <input id="inpUser" type="text" placeholder="peter">
-          </div>
-          <div class="field" style="margin-top:8px">
-            <label>Senha</label>
-            <input id="inpPass" type="password" placeholder="senha">
-          </div>
+<nav>
+<div class="logo">CRONOS SMP</div>
+<ul>
+<li><a href="#">INÍCIO</a></li>
+<li><a href="#live">AO VIVO</a></li>
+<li><a href="#why">POR QUE JOGAR</a></li>
+<li><a href="#timeline">HISTÓRIA</a></li>
+</ul>
+</nav>
 
-          <div style="display:flex;gap:8px;margin-top:12px">
-            <button id="btnLogin" class="btn">Entrar</button>
-            <button id="btnDemo" class="btn ghost">Demo</button>
-          </div>
+<header class="hero">
+<img src="https://i.imgur.com/ZNLf2ex.gif" class="hero-gif">
+<div class="hero-content">
+<h1>CRONOS SMP</h1>
+<p>
+Um mundo onde <strong>suas escolhas não podem ser apagadas</strong>.<br>
+Aqui, o tempo observa.
+</p>
 
-          <p class="small" style="margin-top:12px">Usuários: <strong>mestre / c042060</strong>, <strong>Peter / 2013</strong>, <strong>nilo / ordem23</strong>, <strong>Nicolas / 2022</strong></p>
-          <div style="margin-top:12px" class="small muted">Use a barra de busca para localizar NPCs.</div>
-        </div>
+<div class="cta">
+<a href="#join" class="primary">QUERO FAZER PARTE</a>
+<a href="#live">ASSISTIR AO VIVO</a>
+</div>
 
-        <div class="panel" style="margin-top:12px">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <h3 style="margin:0">Catálogo Pessoal</h3>
-            <div class="small">Clique para abrir / editar</div>
-          </div>
-          <div class="catalog" id="catalogList">
-            <p class="muted">Faça login para ver seu catálogo pessoal.</p>
-          </div>
+<div class="scroll">
+  <span>S</span><span>C</span><span>R</span><span>O</span><span>L</span><span>L</span>
+  <span class="arrow">↓</span>
+</div>
+</header>
 
-          <div style="margin-top:12px;display:flex;gap:8px">
-            <button id="btnExport" class="btn ghost" style="flex:1">Exportar catálogo</button>
-            <button id="btnClear" class="btn ghost" style="flex:1">Limpar catálogo</button>
-          </div>
-        </div>
-      </aside>
+<section id="live" class="live reveal">
+<h2>O MUNDO NÃO PARA</h2>
+<p>Enquanto você lê isso, algo está mudando.</p>
 
-      <!-- RIGHT: busca e visualização -->
-      <main class="main-area">
-        <div class="panel card">
-          <div class="searchbar">
-            <input id="searchInput" type="text" placeholder="Pesquisar cidadão pelo nome (ex: Zeca pauGordinho)">
-            <button id="btnSearch" class="btn">Pesquisar</button>
-          </div>
-          <div id="helper" class="small" style="margin-top:8px">Pesquise pelo nome completo ou parte do nome. O NPC será salvo no seu catálogo automaticamente.</div>
-        </div>
+<div class="live-grid">
+<div class="live-card">
+<iframe src="https://player.twitch.tv/?channel=twitch&parent=localhost&muted=true"></iframe>
+<div class="live-info">
+<div class="live-tag">● AO VIVO AGORA</div>
+<h3>Streamer</h3>
+</div>
+</div>
+</div>
+</section>
 
-        <div class="results">
-          <section id="viewMain" class="card npc-view">
-            <div id="emptyState">
-              <h3 style="margin-top:0">Nenhum NPC selecionado</h3>
-              <p class="muted">Use a busca ou clique em um NPC do catálogo para ver/editar.</p>
-            </div>
+<section id="why" class="why reveal">
+<h2>POR QUE JOGAR CRONOS?</h2>
+<div class="why-grid">
+<div class="reason">
+<h3>Nada Reseta</h3>
+<p>Construções, erros e decisões permanecem.</p>
+</div>
+<div class="reason">
+<h3>Você Importa</h3>
+<p>O mundo reage a jogadores, não a roteiros.</p>
+</div>
+<div class="reason">
+<h3>História Viva</h3>
+<p>Eventos surgem do caos, não de comandos.</p>
+</div>
+<div class="reason">
+<h3>Consequências Reais</h3>
+<p>Toda escolha cria uma ruptura.</p>
+</div>
+</div>
+</section>
 
-            <div id="npcArea" style="display:none">
-              <div id="displayMode">
-                <div style="display:flex;justify-content:space-between;align-items:start;gap:12px">
-                  <div>
-                    <h2 id="viewName"></h2>
-                    <div class="meta" id="viewMeta"></div>
-                  </div>
-                  <div class="center">
-                    <button id="btnEditMode" class="btn ghost">Editar</button>
-                  </div>
-                </div>
-                <div class="tags" id="viewTags"></div>
-                <hr>
-                <div id="viewDesc" class="muted" style="white-space:pre-wrap"></div>
-                <div id="viewNotes" style="margin-top:12px;background:rgba(255,255,255,0.02);padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.02);display:none">
-                  <strong style="display:block;margin-bottom:6px">Anotações</strong>
-                  <div id="viewNotesContent" class="small muted" style="white-space:pre-wrap"></div>
-                </div>
-              </div>
+<section class="immersion reveal">
+<p class="quote">
+Alguns mundos te dão liberdade. Cronos te dá responsabilidade.
+</p>
+</section>
 
-              <div id="editMode" style="display:none" class="editable">
-                <h3 style="margin:0 0 8px 0">Editar NPC</h3>
-                <div class="grid-2">
-                  <div>
-                    <label>Nome</label>
-                    <input id="editNome" type="text">
-                  </div>
-                  <div>
-                    <label>Idade</label>
-                    <input id="editIdade" type="text">
-                  </div>
-                </div>
-                <div style="margin-top:8px">
-                  <label>Emprego</label>
-                  <input id="editEmprego" type="text">
-                </div>
-                <div style="margin-top:8px">
-                  <label>Nascimento</label>
-                  <input id="editNasc" type="text">
-                </div>
-                <div style="margin-top:8px">
-                  <label>Breve descrição (tag)</label>
-                  <input id="editBrief" type="text">
-                </div>
-                <div style="margin-top:8px">
-                  <label>Descrição completa</label>
-                  <textarea id="editDesc"></textarea>
-                </div>
+<section id="timeline" class="timeline reveal">
+<h2>A HISTÓRIA JÁ COMEÇOU</h2>
+<div class="timeline-grid">
+<div class="event">
+<span>ERA ZERO</span>
+<h3>O Início</h3>
+<p>Um mundo criado fora do fluxo normal do tempo.</p>
+</div>
+<div class="event">
+<span>RUPTURA I</span>
+<h3>A Primeira Escolha</h3>
+<p>Algo foi feito que não podia ser desfeito.</p>
+</div>
+<div class="event">
+<span>AGORA</span>
+<h3>Instabilidade</h3>
+<p>O futuro não está escrito.</p>
+</div>
+</div>
+</section>
 
-                <div style="margin-top:8px">
-                  <label>Anotações internas</label>
-                  <textarea id="editNotes" placeholder="Observações da investigação, pistas, locais relacionados..."></textarea>
-                </div>
+<section id="join" class="join reveal">
+<h2>O TEMPO NÃO ESPERA</h2>
+<p>
+Cronos não é para todos.<br>
+É para quem aceita viver com as consequências.
+</p>
 
-                <div style="display:flex;gap:8px;margin-top:10px">
-                  <button id="btnSave" class="btn">Salvar</button>
-                  <button id="btnCancel" class="btn ghost">Cancelar</button>
-                  <button id="btnDelete" class="btn ghost" style="margin-left:auto;background:#8b2b2b">Excluir</button>
-                </div>
-              </div>
-            </div>
-          </section>
+<div class="cta">
+<a href="#" class="primary">ENTRAR NO PROJETO</a>
+<a href="#">VER A LORE COMPLETA</a>
+</div>
+</section>
 
-          <aside class="card">
-            <h4 style="margin:0">Ações Rápidas</h4>
-            <p class="small muted" style="margin-top:8px">Exporte o catálogo atual ou recarregue o banco de exemplo.</p>
-            <div style="margin-top:12px;display:flex;gap:8px">
-              <button id="btnQuickExport" class="btn">Exportar JSON</button>
-              <button id="btnReload" class="btn ghost">Recarregar DB</button>
-            </div>
-
-            <hr>
-            <div>
-              <h5 style="margin:0">Banco Global</h5>
-              <p class="small muted" style="margin-top:8px">10 NPCs de exemplo carregados — edições são salvas localmente.</p>
-            </div>
-            <!-- logout in panel (visible when logged) -->
-            <div style="margin-top:12px;display:flex;justify-content:flex-end">
-              <button id="btnLogoutPanel" class="btn ghost hidden">Logout</button>
-            </div>
-          </aside>
-        </div>
-
-      </main>
-    </div>
-
-    <footer>Banco de Dados da Ordem • Sistema recém atualizado!</footer>
-  </div>
-
-  <!-- LOGIN OVERLAY (finger) -->
-  <div class="login-screen" id="loginScreen" aria-hidden="true">
-    <div class="login-box" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
-      <div class="login-head">
-        <div class="lock">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 1C9.24 1 7 3.24 7 6v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V6c0-2.76-2.24-5-5-5z" stroke="#fff" stroke-opacity="0.9" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <div>
-          <div id="loginTitle" style="font-weight:600;color:#eaf0ff">Acesso Restrito — Ordem</div>
-          <div class="small" style="color:rgba(255,255,255,0.6)">Insira usuário e senha e confirme com sua digital</div>
-        </div>
-      </div>
-
-      <div style="margin-top:12px;display:flex;gap:12px;align-items:flex-start">
-        <div style="flex:1">
-          <label style="font-size:12px;color:rgba(255,255,255,0.6)">Usuário</label>
-          <input id="loginUser" type="text" placeholder="Usuario" style="margin-bottom:8px">
-          <label style="font-size:12px;color:rgba(255,255,255,0.6)">Senha</label>
-          <input id="loginPass" type="password" placeholder="********">
-          <div style="display:flex;gap:8px;margin-top:12px">
-            <button id="loginBtn" class="btn" style="flex:1">Entrar</button>
-          </div>
-          <div class="hint" style="margin-top:8px">OU confirme com a digital</div>
-        </div>
-
-        <div style="width:140px">
-          <div class="finger" id="finger" title="Clique para confirmar digital">
-            <div class="ring"></div>
-            <div class="scan"></div>
-            <div class="icon" id="fingerIcon">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M12 3C9.79 3 8 4.79 8 7v1" stroke="#dbe9ff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.93 7.93C4 9.07 3.5 10.45 3.5 12c0 4.14 3.36 7.5 7.5 7.5S18.5 16.14 18.5 12c0-1.55-.5-2.93-1.43-4.07" stroke="#dbe9ff" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </div>
-          </div>
-          <div class="hint">Toque a digital para autenticar</div>
-        </div>
-      </div>
-      <div id="loginError" style="color:#ff8080;margin-top:10px;display:none">Usuário ou senha inválidos.</div>
-    </div>
-  </div>
+<footer>
+© CRONOS SMP — O TEMPO OBSERVA
+</footer>
 
 <script>
-/* ---------- Dados iniciais (padrão) ---------- */
-const DEFAULT_DB = [
-  { id:'lhetaco', nome: "lhetaco", idade: 68, emprego: "Delegado", nascimento: "14/09/1996", brief:"Curioso demais", descricao: "Lhedaco foi movido pela curiosidade. Investiga casos noturnos e tem um talento para descobrir segredos que deveriam permanecer ocultos.", notes: "" },
-  { id:'arthur-vidal', nome: "Arthur Vidal", idade: 42, emprego: "Ex-militar / policial", nascimento: "22/05/1983", brief:"Calmo e estratégico", descricao: "Veterano de operações, Arthur age com disciplina e cobre os pontos fracos da equipe.", notes: "" },
-  { id:'helena-rocha', nome: "Helena Rocha", idade: 33, emprego: "Médica Legista", nascimento: "03/03/1992", brief:"Observadora", descricao: "Helena encontra padrões onde outros veem caos. Seu método clínico já salvou investigações numerosas.", notes: "" },
-  { id:'gabriel-santos', nome: "Gabriel Santos", idade: 24, emprego: "Analista de Dados", nascimento: "15/01/2001", brief:"Genial, paranoico", descricao: "Analisa registros com velocidade incomum. A paranoia o deixa cauteloso, porém brilhante.", notes: "" },
-  { id:'valentina-moura', nome: "Valentina Moura", idade: 47, emprego: "Pesquisadora-chefe", nascimento: "10/11/1978", brief:"Autoridade máxima", descricao: "Líder intelectual da Ordem. Conhecimento vasto de rituais e anomalias.", notes: "" },
-  { id:'caio-albuquerque', nome: "Caio Albuquerque", idade: 19, emprego: "Recruta", nascimento: "09/06/2006", brief:"Destemido", descricao: "Recém-chegado, age por impulso. Seu entusiasmo é útil — até que não seja.", notes: "" },
-  { id:'enzo-pires', nome: "Enzo Pires", idade: 38, emprego: "Caçador de Entidades", nascimento: "05/08/1987", brief:"Olhar vazio", descricao: "Enzo conhece o lado bruto das sombras. Seu olhar carrega memórias do que enfrentou.", notes: "" },
-  { id:'maya-torres', nome: "Maya Torres", idade: 27, emprego: "Bibliotecária", nascimento: "19/12/1998", brief:"Memória fotográfica", descricao: "Guardião de textos raros. Maya decifra símbolos e traduz manuscritos esquecidos.", notes: "" },
-  { id:'rafael-braga', nome: "Rafael Braga", idade: 35, emprego: "Engenheiro Ocultista", nascimento: "24/02/1990", brief:"Inventor arcanista", descricao: "Combina física e ritual para criar aparatos que auxiliam a Ordem.", notes: "" },
-  { id:'clara-nogueira', nome: "Clara Nogueira", idade: 31, emprego: "Médium Sensitiva", nascimento: "12/10/1994", brief:"Visões instáveis", descricao: "Clara é a ponte entre planos. Suas visões são instáveis, mas frequentemente precisas.", notes: "" }
-];
+const obs=new IntersectionObserver(entries=>{
+entries.forEach(e=>{
+if(e.isIntersecting)e.target.classList.add('show')
+})
+},{threshold:.15})
 
-const PRE_USERS = { 'mestre':'c042060','Peter':'2013','Nilo':'vinganca','Nicolas':'2022' };
-
-/* ---------- Helpers storage ---------- */
-const DB_KEY = 'ordem_db_v1';
-const USER_PREFIX = 'ordem_user_';
-
-function loadDB(){
-  try{ const raw = localStorage.getItem(DB_KEY); if(raw) return JSON.parse(raw); }
-  catch(e){}
-  localStorage.setItem(DB_KEY, JSON.stringify(DEFAULT_DB));
-  return JSON.parse(JSON.stringify(DEFAULT_DB));
-}
-function saveDB(db){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
-function getUserCatalog(user){ try{ return JSON.parse(localStorage.getItem(USER_PREFIX + user)) || [] }catch(e){ return [] } }
-function saveUserCatalog(user,arr){ localStorage.setItem(USER_PREFIX + user, JSON.stringify(arr)) }
-function exportJSON(obj, name = 'export.json'){ const blob = new Blob([JSON.stringify(obj,null,2)], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download = name; a.click(); URL.revokeObjectURL(url); }
-
-/* ---------- State ---------- */
-let DB = loadDB();
-let currentUser = null;
-let currentNPC = null;
-
-/* ---------- Elements ---------- */
-const loginScreen = document.getElementById('loginScreen');
-const loginUser = document.getElementById('loginUser');
-const loginPass = document.getElementById('loginPass');
-const loginBtn = document.getElementById('loginBtn');
-const loginDemo = document.getElementById('loginDemo');
-const loginError = document.getElementById('loginError');
-const finger = document.getElementById('finger');
-const fingerIcon = document.getElementById('fingerIcon');
-
-const inpUser = document.getElementById('inpUser');
-const inpPass = document.getElementById('inpPass');
-const btnLogin = document.getElementById('btnLogin');
-const btnDemo = document.getElementById('btnDemo');
-const loginPanel = document.getElementById('loginPanel');
-const statusEl = document.getElementById('status');
-const btnLogoutTop = document.getElementById('btnLogoutTop');
-const btnLogoutPanel = document.getElementById('btnLogoutPanel');
-const catalogList = document.getElementById('catalogList');
-const btnSearch = document.getElementById('btnSearch');
-const searchInput = document.getElementById('searchInput');
-const emptyState = document.getElementById('emptyState');
-const npcArea = document.getElementById('npcArea');
-const viewName = document.getElementById('viewName');
-const viewMeta = document.getElementById('viewMeta');
-const viewDesc = document.getElementById('viewDesc');
-const viewTags = document.getElementById('viewTags');
-const viewNotesBlock = document.getElementById('viewNotes');
-const viewNotesContent = document.getElementById('viewNotesContent');
-
-const btnEditMode = document.getElementById('btnEditMode');
-const editMode = document.getElementById('editMode');
-const displayMode = document.getElementById('displayMode');
-
-const editNome = document.getElementById('editNome');
-const editIdade = document.getElementById('editIdade');
-const editEmprego = document.getElementById('editEmprego');
-const editNasc = document.getElementById('editNasc');
-const editBrief = document.getElementById('editBrief');
-const editDesc = document.getElementById('editDesc');
-const editNotes = document.getElementById('editNotes');
-
-const btnSave = document.getElementById('btnSave');
-const btnCancel = document.getElementById('btnCancel');
-const btnDelete = document.getElementById('btnDelete');
-
-const btnExport = document.getElementById('btnExport');
-const btnClear = document.getElementById('btnClear');
-const btnQuickExport = document.getElementById('btnQuickExport');
-const btnReload = document.getElementById('btnReload');
-
-/* ---------- UI helpers ---------- */
-function refreshStatus(){ statusEl.textContent = currentUser?`Logado: ${currentUser}`:'Não logado'; btnLogoutTop.classList.toggle('hidden', !currentUser); btnLogoutPanel.classList.toggle('hidden', !currentUser); }
-function showPanelLogged(){ loginPanel.style.display = 'none'; }
-function showPanelLogout(){ loginPanel.style.display = 'block'; }
-
-/* ---------- Render catalog ---------- */
-function renderCatalog(){
-  catalogList.innerHTML = '';
-  if(!currentUser){
-    catalogList.innerHTML = '<p class="muted">Faça login para ver seu catálogo pessoal.</p>'; return;
-  }
-  const ids = getUserCatalog(currentUser);
-  if(ids.length === 0){ catalogList.innerHTML = '<p class="muted">Nenhum NPC descoberto ainda.</p>'; return; }
-  ids.forEach(id=>{
-    const n = DB.find(x=>x.id === id);
-    if(!n) return;
-    const el = document.createElement('div'); el.className='npc-item';
-    el.innerHTML = `<div class="thumb">${n.nome.split(' ').map(s=>s[0]).slice(0,2).join('').toUpperCase()}</div>
-                    <div style="flex:1">
-                      <strong style="color:#fff">${n.nome}</strong>
-                      <div class="muted" style="font-size:13px">${n.emprego} • ${n.idade} anos</div>
-                    </div>`;
-    el.addEventListener('click', ()=> openNPC(n.id));
-    catalogList.appendChild(el);
-  });
-}
-
-/* ---------- Auth flows ---------- */
-function validateCredentials(u,p){
-  if(!u || !p) return false;
-  return PRE_USERS[u] && PRE_USERS[u] === p;
-}
-
-// overlay login actions
-loginBtn.addEventListener('click', ()=> attemptLogin(loginUser.value.trim(), loginPass.value.trim()));
-loginDemo.addEventListener('click', ()=> attemptLogin('mestre','c042060'));
-
-// panel login actions (keeps compatibility)
-btnLogin.addEventListener('click', ()=> attemptLogin(inpUser.value.trim(), inpPass.value.trim()));
-btnDemo.addEventListener('click', ()=> attemptLogin('mestre','c042060'));
-
-// keyboard niceties
-loginUser.addEventListener('keydown', (e)=>{ if(e.key==='Enter') loginPass.focus(); });
-loginPass.addEventListener('keydown', (e)=>{ if(e.key==='Enter') attemptLogin(loginUser.value.trim(), loginPass.value.trim()); });
-
-// fingerprint click: attempt using overlay inputs
-finger.addEventListener('click', ()=>{
-  finger.classList.add('pulse');
-  setTimeout(()=> finger.classList.remove('pulse'), 220);
-  const u = loginUser.value.trim();
-  const p = loginPass.value.trim();
-  if(validateCredentials(u,p)){
-    // success animation & small delay
-    fingerIcon.style.background = 'linear-gradient(90deg, rgba(46,139,255,0.14), rgba(122,78,255,0.06))';
-    setTimeout(()=> attemptLogin(u,p), 320);
-  } else {
-    loginError.style.display = 'block';
-    setTimeout(()=> loginError.style.display = 'none', 1700);
-  }
-});
-
-function attemptLogin(u,p){
-  if(!u || !p){ loginError.textContent = 'Preencha usuário e senha.'; loginError.style.display='block'; setTimeout(()=> loginError.style.display='none',1700); return; }
-  if(!validateCredentials(u,p)){ loginError.textContent = 'Usuário ou senha inválidos.'; loginError.style.display='block'; setTimeout(()=> loginError.style.display='none',1700); return; }
-  // success
-  currentUser = u;
-  localStorage.setItem('ordem_user_session', u);
-  // hide overlay & sync left panel inputs
-  loginScreen.style.display = 'none';
-  inpUser.value = u;
-  inpPass.value = p;
-  onLogin();
-}
-
-// Logout handlers (top and panel)
-btnLogoutTop.addEventListener('click', doLogout);
-btnLogoutPanel.addEventListener('click', doLogout);
-
-function doLogout(){
-  if(!confirm('Deseja realmente deslogar?')) return;
-  localStorage.removeItem('ordem_user_session');
-  currentUser = null;
-  // reset UI
-  loginScreen.style.display = 'flex';
-  loginUser.value = '';
-  loginPass.value = '';
-  inpUser.value = '';
-  inpPass.value = '';
-  onLogout();
-}
-
-function onLogin(){
-  refreshStatus(); showPanelLogged(); renderCatalog();
-  document.getElementById('searchInput').focus();
-}
-function onLogout(){
-  refreshStatus(); showPanelLogout(); catalogList.innerHTML = '<p class="muted">Faça login para ver seu catálogo pessoal.</p>'; clearView();
-}
-
-/* ---------- Search & Open ---------- */
-btnSearch.addEventListener('click', ()=> performSearch(searchInput.value.trim()));
-searchInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') performSearch(searchInput.value.trim()) });
-
-function performSearch(q){
-  if(!currentUser){ alert('Faça login antes de pesquisar.'); return; }
-  if(!q){ alert('Digite algo para pesquisar.'); return; }
-  const found = DB.find(n => n.nome.toLowerCase() === q.toLowerCase() || n.id.toLowerCase() === q.toLowerCase() || n.nome.toLowerCase().includes(q.toLowerCase()));
-  if(!found){ alert('NPC não encontrado.'); return; }
-  openNPC(found.id);
-  const cat = getUserCatalog(currentUser);
-  if(!cat.includes(found.id)){ cat.push(found.id); saveUserCatalog(currentUser, cat); renderCatalog(); }
-}
-
-function openNPC(id){
-  const n = DB.find(x=>x.id === id);
-  if(!n) return;
-  currentNPC = n;
-  emptyState.style.display = 'none';
-  npcArea.style.display = 'block';
-  displayMode.style.display = 'block';
-  editMode.style.display = 'none';
-  viewName.textContent = n.nome;
-  viewMeta.textContent = `${n.idade} anos • ${n.emprego} • ${n.nascimento}`;
-  viewDesc.textContent = n.descricao;
-  viewTags.innerHTML = `<div class="tag">${n.brief || '—'}</div>`;
-  if(n.notes && n.notes.trim() !== ''){
-    viewNotesContent.textContent = n.notes;
-    viewNotesBlock.style.display = 'block';
-  } else {
-    viewNotesContent.textContent = '';
-    viewNotesBlock.style.display = 'none';
-  }
-}
-
-/* ---------- Edit handling ---------- */
-btnEditMode.addEventListener('click', ()=> enterEdit());
-btnCancel.addEventListener('click', ()=> { exitEdit(false); });
-btnSave.addEventListener('click', ()=> { saveEdit(); });
-btnDelete.addEventListener('click', ()=> { deleteNPC(); });
-
-function enterEdit(){
-  if(!currentNPC){ alert('Nenhum NPC selecionado'); return; }
-  editNome.value = currentNPC.nome;
-  editIdade.value = currentNPC.idade;
-  editEmprego.value = currentNPC.emprego;
-  editNasc.value = currentNPC.nascimento;
-  editBrief.value = currentNPC.brief || '';
-  editDesc.value = currentNPC.descricao || '';
-  editNotes.value = currentNPC.notes || '';
-  displayMode.style.display = 'none';
-  editMode.style.display = 'block';
-  setTimeout(()=> editNome.focus(), 80);
-}
-
-function exitEdit(apply){
-  if(!apply){
-    displayMode.style.display = 'block';
-    editMode.style.display = 'none';
-  }
-}
-
-function saveEdit(){
-  if(!currentNPC) return;
-  const idx = DB.findIndex(x=>x.id === currentNPC.id);
-  if(idx === -1) return;
-  DB[idx].nome = editNome.value.trim() || DB[idx].nome;
-  DB[idx].idade = editIdade.value.trim() || DB[idx].idade;
-  DB[idx].emprego = editEmprego.value.trim() || DB[idx].emprego;
-  DB[idx].nascimento = editNasc.value.trim() || DB[idx].nascimento;
-  DB[idx].brief = editBrief.value.trim() || DB[idx].brief;
-  DB[idx].descricao = editDesc.value.trim() || DB[idx].descricao;
-  DB[idx].notes = editNotes.value.trim() || '';
-  saveDB(DB);
-  currentNPC = DB[idx];
-  openNPC(currentNPC.id);
-  renderCatalog();
-  alert('NPC salvo com sucesso.');
-}
-
-function deleteNPC(){
-  if(!currentNPC) return;
-  if(!confirm('Deseja excluir este NPC do banco local? (A ação remove do banco local e do seu catálogo)')) return;
-  DB = DB.filter(x=>x.id !== currentNPC.id);
-  saveDB(DB);
-  Object.keys(localStorage).forEach(k=>{
-    if(k.startsWith(USER_PREFIX)){
-      try{
-        const arr = JSON.parse(localStorage.getItem(k)) || [];
-        const filtered = arr.filter(id => id !== currentNPC.id);
-        localStorage.setItem(k, JSON.stringify(filtered));
-      }catch(e){}
-    }
-  });
-  currentNPC = null;
-  renderCatalog();
-  clearView();
-  alert('NPC removido.');
-}
-
-/* ---------- Utilities UI ---------- */
-function clearView(){
-  emptyState.style.display = 'block';
-  npcArea.style.display = 'none';
-  displayMode.style.display = 'none';
-  editMode.style.display = 'none';
-  currentNPC = null;
-}
-
-document.getElementById('btnExport').addEventListener('click', ()=>{
-  if(!currentUser){ alert('Faça login para exportar seu catálogo.'); return; }
-  const cat = getUserCatalog(currentUser);
-  const data = { user: currentUser, catalog: cat.map(id => DB.find(n=>n.id===id)).filter(Boolean) };
-  exportJSON(data, `catalogo_${currentUser}.json`);
-});
-document.getElementById('btnClear').addEventListener('click', ()=>{
-  if(!currentUser){ alert('Faça login para limpar seu catálogo.'); return; }
-  if(!confirm('Limpar seu catálogo local?')) return;
-  saveUserCatalog(currentUser, []);
-  renderCatalog();
-  clearView();
-});
-btnQuickExport.addEventListener('click', ()=> exportJSON(DB, 'banco_ordem.json'));
-btnReload.addEventListener('click', ()=>{ if(confirm('Recarregar banco padrão? Isso sobrescreve o banco local com o padrão de exemplo.')){ localStorage.removeItem(DB_KEY); DB = loadDB(); renderCatalog(); clearView(); alert('Banco recarregado.'); }});
-
-/* ---------- On load: session restore ---------- */
-(function init(){
-  DB = loadDB();
-  const sess = localStorage.getItem('ordem_user_session');
-  if(sess){
-    // if there's a saved session, restore it and hide overlay
-    currentUser = sess;
-    loginScreen.style.display = 'none';
-    inpUser.value = currentUser;
-    // attempt to restore panel quickly
-    onLogin();
-  } else {
-    // show overlay and clear any left-over left-panel creds
-    loginScreen.style.display = 'flex';
-    inpUser.value = '';
-    inpPass.value = '';
-  }
-  refreshStatus();
-  renderCatalog();
-})();
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el))
 </script>
+
 </body>
 </html>
